@@ -14,27 +14,16 @@ set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_BUILD_TYPE Release)
 pico_sdk_init()
 
-file(GLOB CPPFILE "gps_ublox/*.c")
-message("Adding ${PROJECT_NAME} C files: " )
-foreach(source ${CPPFILE})
-    message("  - " ${source})
-endforeach(source)
-
-file(GLOB HFILE "gps_ublox/*.h")
-message("Adding ${PROJECT_NAME} H files: " )
-foreach(source ${HFILE})
-    message("  - " ${source})
-endforeach(source)
+ 
 
 add_executable(${PROJECT_NAME}
 main.c
-${CPPFILE}
-${HFILE}
 )
 
+add_subdirectory(gps_ublox)
 target_link_libraries(${PROJECT_NAME}
 pico_stdlib
-hardware_uart
+gps_ublox
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
