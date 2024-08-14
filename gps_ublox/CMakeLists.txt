@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required(VERSION 3.13)
 project(gps_ublox)
 
 message("Adding ${PROJECT_NAME} C files: " )
@@ -13,8 +13,7 @@ foreach(source ${HFILE})
     message("  - " ${source})
 endforeach(source)
  
-
-add_library(${PROJECT_NAME} STATIC
+add_library(${PROJECT_NAME} 
 ${CPPFILE}
 ${HFILE}
 )
