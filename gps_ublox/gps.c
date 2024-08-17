@@ -7,9 +7,10 @@ struct Time time;
 
 void gps_init()
 {
-    gpio_init(4);
-    gpio_set_dir(4, GPIO_OUT);
-    gpio_put(4, 1);
+    gpio_deinit(5);
+    gpio_init(5);
+    gpio_set_dir(5, GPIO_OUT);
+    gpio_put(5, 1);
 
     uart_configure();
     // sleep_ms(1000);
@@ -38,6 +39,7 @@ bool checkCRC(const uint8_t *str)
 
 void nmea_parcer(uint8_t *str)
 {
+    printf("%s", str);
     if (!checkCRC(str))
         return;
     if (strstr((char *)str, "RMC") != NULL)

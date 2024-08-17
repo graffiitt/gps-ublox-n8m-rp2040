@@ -6,11 +6,17 @@
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
 #include "pico/util/queue.h"
-#include "pico/async_context_threadsafe_background.h"
-
+ 
 #include "hardware/pio.h"
 #include "hardware/uart.h"
 #include "uart_rx.pio.h"
+#include "pico/async_context_freertos.h"
+
+// Priorities of our threads - higher numbers are higher priority
+#define UART_TASK_PRIORITY (tskIDLE_PRIORITY + 4UL)
+
+// Stack sizes of our threads in words (4 bytes)
+#define UART_TASK_STACK_SIZE configMINIMAL_STACK_SIZE
 
 #define UART_ID uart0
 #define BAUD_RATE 9600
@@ -20,10 +26,5 @@
 #define FIFO_SIZE 80
 
 void uart_configure();
-
-void async_worker_func(async_context_t *async_context, async_when_pending_worker_t *worker);
-void pio_irq_func(void);
-void async_worker_func(async_context_t *async_context, async_when_pending_worker_t *worker);
-bool init_pio(const pio_program_t *program, PIO *pio_hw, uint *sm, uint *offset);
 
 #endif
