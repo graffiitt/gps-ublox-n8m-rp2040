@@ -3,18 +3,24 @@
 static const uint8_t set5hz[] = {0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xC8, 0x00, 0x01, 0x00, 0x01, 0x00, 0xDE, 0x6A}; //(5Hz)
 
 struct Position pos;
-struct Time time;
+struct Time timeGPS;
 
 void gps_init()
 {
+    uart_configure();
     gpio_deinit(5);
     gpio_init(5);
     gpio_set_dir(5, GPIO_OUT);
-    gpio_put(5, 1);
-
-    uart_configure();
     // sleep_ms(1000);
     // uart_write_blocking(UART_ID, set5hz, sizeof set5hz);
+}
+
+void gps_on(bool state)
+{
+    if (state)
+        gpio_put(5, 1);
+    else
+        gpio_put(5, 0);
 }
 
 bool checkCRC(const uint8_t *str)
@@ -39,7 +45,6 @@ bool checkCRC(const uint8_t *str)
 
 void nmea_parcer(uint8_t *str)
 {
-    printf("%s", str);
     if (!checkCRC(str))
         return;
     if (strstr((char *)str, "RMC") != NULL)
@@ -71,14 +76,14 @@ void parse_RMC(uint8_t *data)
                 case TIME_RMC:
                 {
                     char ch[] = {buff[0], buff[1]};
-                    time.hours = atoi(ch);
-                    time.hours = time.hours > 20 ? time.hours - 21 : time.hours + 3;
+                    timeGPS.hours = atoi(ch);
+                    timeGPS.hours = timeGPS.hours > 20 ? timeGPS.hours - 21 : timeGPS.hours + 3;
                     ch[0] = buff[2];
                     ch[1] = buff[3];
-                    time.minutes = atoi(ch);
+                    timeGPS.minutes = atoi(ch);
                     ch[0] = buff[4];
                     ch[1] = buff[5];
-                    time.seconds = atoi(ch);
+                    timeGPS.seconds = atoi(ch);
                     break;
                 }
                 case STATUS_RMC:
@@ -185,23 +190,44 @@ void parse_VTG(uint8_t *data)
     }
 }
 
-double calc_distance(double lat1, double lon1, double lat2, double lon2)
+double calc_distance()
 {
-    double theta, dist;
-    if ((lat1 == lat2) && (lon1 == lon2))
+    static double longtitude = 0;
+    static double latitude = 0;
+
+    if (latitude == 0 && latitude == 0)
+    {
+        longtitude = pos.longtitude;
+        latitude = pos.latitude;
+        return 0;
+    }
+
+    if ((pos.latitude == 0) || (pos.longtitude == 0))
+        return 0;
+
+    if ((latitude == pos.latitude) && (longtitude == pos.longtitude))
     {
         return 0;
     }
     else
     {
-        theta = lon1 - lon2;
-        dist = sin(deg2rad(lat1)) * sin(deg2rad(lat2)) + cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * cos(deg2rad(theta));
+        double theta;
+        double dist = 0.01f;
+        theta = longtitude - pos.longtitude;
+        dist = sin(deg2rad(latitude)) * sin(deg2rad(pos.latitude)) + cos(deg2rad(latitude)) * cos(deg2rad(pos.latitude)) * cos(deg2rad(theta));
         dist = acos(dist);
         dist = rad2deg(dist);
-        dist = dist * 60 * 1.1515;
-        dist = dist * 1.609344;
+        dist = dist * 60 * 1.1515 * 1.609344;
 
-        return dist;
+        if (isinf(dist) == 0)
+        {
+            longtitude = pos.longtitude;
+            latitude = pos.latitude;
+            return dist;
+        }
+
+        else
+            return 0;
     }
 }
 

@@ -16,7 +16,9 @@ add_executable(${PROJECT_NAME}
 main.c
 )
 
+set(CONFIG_PATH_FREERTOS ${CMAKE_CURRENT_LIST_DIR})
 add_subdirectory(gps_ublox)
+
 target_link_libraries(${PROJECT_NAME}
 gps_ublox
 pico_async_context_freertos

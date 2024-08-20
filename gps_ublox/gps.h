@@ -29,12 +29,13 @@ struct Position
 };
 
 void gps_init();
+void gps_on(bool state);
 bool checkCRC(const uint8_t *str);
 void nmea_parcer(uint8_t *str);
 void parse_RMC(uint8_t *data);
 void parse_VTG(uint8_t *data);
 
-double calc_distance(double lat1, double lon1, double lat2, double lon2);
+double calc_distance();
 double deg2rad(double);
 double rad2deg(double);
 
