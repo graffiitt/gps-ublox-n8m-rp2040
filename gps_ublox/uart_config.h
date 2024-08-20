@@ -13,7 +13,7 @@
 #include "pico/async_context_freertos.h"
 
 // Priorities of our threads - higher numbers are higher priority
-#define UART_TASK_PRIORITY (tskIDLE_PRIORITY + 4UL)
+#define UART_TASK_PRIORITY (tskIDLE_PRIORITY + 26UL)
 
 // Stack sizes of our threads in words (4 bytes)
 #define UART_TASK_STACK_SIZE configMINIMAL_STACK_SIZE

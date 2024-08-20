@@ -114,8 +114,10 @@ void pio_irq_func(void)
 
 static void async_worker_func(async_context_t *async_context, async_when_pending_worker_t *worker)
 {
+    gpio_put(14, 1);
     if (pointerBuffer)
         nmea_parcer(rx_buffer_1);
     else
         nmea_parcer(rx_buffer_2);
+    gpio_put(14, 0);
 }

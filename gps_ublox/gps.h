@@ -35,7 +35,7 @@ void parse_RMC(uint8_t *data);
 void parse_VTG(uint8_t *data);
 
 double calc_distance(double lat1, double lon1, double lat2, double lon2);
-static double deg2rad(double);
-static double rad2deg(double);
+double deg2rad(double);
+double rad2deg(double);
 
 #endif

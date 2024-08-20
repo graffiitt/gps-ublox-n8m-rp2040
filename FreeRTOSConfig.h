@@ -43,8 +43,8 @@
 /* Scheduler Related */
 #define configUSE_PREEMPTION                    1
 #define configUSE_TICKLESS_IDLE                 0
-#define configUSE_IDLE_HOOK                     0
-#define configUSE_TICK_HOOK                     0
+#define configUSE_IDLE_HOOK                     1
+#define configUSE_TICK_HOOK                     1
 #define configTICK_RATE_HZ                      ( ( TickType_t ) 1000 )
 #define configMAX_PRIORITIES                    32
 #define configMINIMAL_STACK_SIZE                ( configSTACK_DEPTH_TYPE ) 512 
@@ -55,7 +55,7 @@
 /* Synchronization Related */
 #define configUSE_MUTEXES                       1
 #define configUSE_RECURSIVE_MUTEXES             1
-#define configUSE_APPLICATION_TASK_TAG          0
+#define configUSE_APPLICATION_TASK_TAG          1
 #define configUSE_COUNTING_SEMAPHORES           1
 #define configQUEUE_REGISTRY_SIZE               8
 #define configUSE_QUEUE_SETS                    1
@@ -152,5 +152,12 @@ to exclude the API function. */
 #endif
 
 /* A header file that defines trace macro can be included here. */
+
+// macros
+
+void TaskSwitchedIn(int);
+void TaskSwitchedOut(int);
+#define traceTASK_SWITCHED_IN() TaskSwitchedIn((int)pxCurrentTCB->pxTaskTag);
+#define traceTASK_SWITCHED_OUT() TaskSwitchedOut((int)pxCurrentTCB->pxTaskTag);
 
 #endif
