@@ -13,7 +13,7 @@ foreach(source ${HFILE})
     message("  - " ${source})
 endforeach(source)
  
-add_library(${TARGET_NAME} 
+add_library(${TARGET_NAME} STATIC
 ${CPPFILE}
 ${HFILE}
 )
@@ -29,7 +29,6 @@ target_link_libraries(${TARGET_NAME} PUBLIC
     pico_async_context_threadsafe_background
 )
 
-target_include_directories(${TARGET_NAME} PUBLIC
+target_include_directories(${TARGET_NAME} PRIVATE
     ${CONFIG_PATH_FREERTOS}
-    ${CMAKE_CURRENT_LIST_DIR}
 )

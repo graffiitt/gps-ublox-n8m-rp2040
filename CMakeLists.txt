@@ -31,7 +31,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
 )
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-configNUMBER_OF_CORES=1
+    configNUMBER_OF_CORES=1
 )
 
 pico_add_extra_outputs(${PROJECT_NAME})
