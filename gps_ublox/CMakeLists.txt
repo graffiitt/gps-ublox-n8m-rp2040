@@ -29,6 +29,7 @@ target_link_libraries(${TARGET_NAME} PUBLIC
     pico_async_context_threadsafe_background
 )
 
-target_include_directories(${TARGET_NAME} PRIVATE
+target_include_directories(${TARGET_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${CONFIG_PATH_FREERTOS}
 )
