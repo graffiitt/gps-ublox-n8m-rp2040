@@ -2,22 +2,39 @@
 
 static const uint8_t set5hz[] = {0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xC8, 0x00, 0x01, 0x00, 0x01, 0x00, 0xDE, 0x6A}; //(5Hz)
 
-struct Position pos;
+uint8_t statusGPS = 0;
+static uint8_t counter[2] = {0};
+static double speed[SIZE_BUFFER_GPS_SP];
+
+double speedGPS;
+struct Position position;
 struct Time timeGPS;
 
+static void parse_RMC(uint8_t *data);
+static void parse_VTG(uint8_t *data);
+static double deg2rad(double);
+static double rad2deg(double);
+static bool checkCRC(const uint8_t *str);
+static void avrSpeed();
+static void avrPose();
+
+// config pinouts
 void gps_init()
 {
     uart_configure();
     gpio_deinit(5);
     gpio_init(5);
     gpio_set_dir(5, GPIO_OUT);
-    // sleep_ms(1000);
-    // uart_write_blocking(UART_ID, set5hz, sizeof set5hz);
 }
 
-void gps_on(bool state)
+void gps_configure()
 {
-    if (state)
+    uart_write_blocking(UART_ID, set5hz, sizeof set5hz);
+}
+
+void gps_power(bool state)
+{
+    if (state) 
         gpio_put(5, 1);
     else
         gpio_put(5, 0);
@@ -90,41 +107,41 @@ void parse_RMC(uint8_t *data)
                 {
                     if (buff[0] == 'A')
                     {
-                        pos.status = 1;
+                        statusGPS = 1;
                     }
                     else
                     {
-                        pos.speed = 0;
-                        pos.status = 0;
+                        statusGPS = 0;
+                        return;
                     }
                     break;
                 }
                 case LATITUDE_RMC:
                 {
-                    if (pos.status)
+                    if (statusGPS)
                     {
                         char *p2 = strchr(buff, '.');
                         double latitude = atof(p2 - 2) / 60.0;
                         buff[p2 - 2 - buff] = '\0';
                         latitude += atof(buff);
-                        pos.latitude = latitude;
+                        position.latitude = latitude;
                     }
                     break;
                 }
                 case 4:
                     if (buff[0] == 'S')
                     {
-                        pos.longtitude = -pos.longtitude;
+                        position.longtitude = -position.longtitude;
                     }
                     break;
                 case LONGTITUDE_RMC:
-                    if (pos.status)
+                    if (statusGPS)
                     {
                         char *p2 = strchr(buff, '.');
                         double longtitude = atof(p2 - 2) / 60.0;
                         buff[p2 - 2 - buff] = '\0';
                         longtitude += atof(buff);
-                        pos.longtitude = longtitude;
+                        position.longtitude = longtitude;
                     }
 
                     break;
@@ -132,7 +149,7 @@ void parse_RMC(uint8_t *data)
                 case 6:
                     if (buff[0] == 'W')
                     {
-                        pos.longtitude = -pos.longtitude;
+                        position.longtitude = -position.longtitude;
                     }
                     break;
                 }
@@ -169,10 +186,14 @@ void parse_VTG(uint8_t *data)
                 {
                 case 7:
                 {
-                    if (buff[0] != '\0')
-                        pos.speed = atof(buff);
+                    if ((buff[0] != '\0') || statusGPS)
+                        speed[counter[1]] = atof(buff);
                     else
-                        pos.speed = 0;
+                        speed[counter[1]] = 0;
+                    avrSpeed();
+                    counter[1]++;
+                    if (counter[1] >= SIZE_BUFFER_GPS_SP)
+                        counter[1] = 0;
                     break;
                 }
                 }
@@ -190,22 +211,22 @@ void parse_VTG(uint8_t *data)
     }
 }
 
-double calc_distance()
+double calc_distance(double lon, double lat)
 {
     static double longtitude = 0;
     static double latitude = 0;
 
     if (latitude == 0 && latitude == 0)
     {
-        longtitude = pos.longtitude;
-        latitude = pos.latitude;
+        longtitude = lon;
+        latitude = lat;
         return 0;
     }
 
-    if ((pos.latitude == 0) || (pos.longtitude == 0))
+    if ((lat == 0) || (lon == 0))
         return 0;
 
-    if ((latitude == pos.latitude) && (longtitude == pos.longtitude))
+    if ((latitude == lat) && (longtitude == lon))
     {
         return 0;
     }
@@ -213,16 +234,16 @@ double calc_distance()
     {
         double theta;
         double dist = 0.01f;
-        theta = longtitude - pos.longtitude;
-        dist = sin(deg2rad(latitude)) * sin(deg2rad(pos.latitude)) + cos(deg2rad(latitude)) * cos(deg2rad(pos.latitude)) * cos(deg2rad(theta));
+        theta = longtitude - lon;
+        dist = sin(deg2rad(latitude)) * sin(deg2rad(lat)) + cos(deg2rad(latitude)) * cos(deg2rad(lat)) * cos(deg2rad(theta));
         dist = acos(dist);
         dist = rad2deg(dist);
         dist = dist * 60 * 1.1515 * 1.609344;
 
         if (isinf(dist) == 0)
         {
-            longtitude = pos.longtitude;
-            latitude = pos.latitude;
+            longtitude = lon;
+            latitude = lat;
             return dist;
         }
 
@@ -239,4 +260,18 @@ double deg2rad(double deg)
 double rad2deg(double rad)
 {
     return (rad * 180 / pi);
+}
+
+void avrSpeed()
+{
+    double summ = 0.00f;
+    for (int i = 0; i < SIZE_BUFFER_GPS_SP; i++)
+    {
+        summ += speed[i];
+    }
+    speedGPS = summ / SIZE_BUFFER_GPS_SP;
+}
+
+void avrPose()
+{
 }

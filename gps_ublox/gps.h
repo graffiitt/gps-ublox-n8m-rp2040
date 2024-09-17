@@ -5,8 +5,9 @@
 #include <math.h>
 #include <stdlib.h>
 
-
 #define pi 3.14159265358979323846
+#define SIZE_BUFFER_GPS 5
+#define SIZE_BUFFER_GPS_SP 50
 
 #define TIME_RMC 1
 #define STATUS_RMC 2 // A - sucsess V - bad
@@ -22,21 +23,15 @@ struct Time
 
 struct Position
 {
-    uint8_t status;
     double latitude;
     double longtitude;
-    double speed;
 };
 
 void gps_init();
-void gps_on(bool state);
-bool checkCRC(const uint8_t *str);
-void nmea_parcer(uint8_t *str);
-void parse_RMC(uint8_t *data);
-void parse_VTG(uint8_t *data);
+void gps_configure();
+void gps_power(bool state);
 
-double calc_distance();
-double deg2rad(double);
-double rad2deg(double);
+void nmea_parcer(uint8_t *str);
+double calc_distance(double lon, double lat);
 
 #endif
